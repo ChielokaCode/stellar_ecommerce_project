@@ -16,7 +16,7 @@
     "lint:fix": "prettier . --write && eslint --fix",
     "lint:format": "prettier . --write",
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "setup": "./initialize.sh ${NETWORK:-testnet} && npm run bindings",
+    "setup": "./initialize.sh ${NETWORK:-testnet}",
     "clean": "rm -rf .next .soroban",
     "reset": "npm run clean && npm run setup"
   },
