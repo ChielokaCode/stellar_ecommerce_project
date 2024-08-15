@@ -16,7 +16,7 @@
     "lint:fix": "prettier . --write && eslint --fix",
     "lint:format": "prettier . --write",
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "setup": "./initialize.sh ${NETWORK:-testnet} && npm install",
+    "setup": "./initialize.sh ${NETWORK:-testnet} && npm install && npm run bindings",
     "clean": "rm -rf .next .soroban",
     "reset": "npm run clean && npm run setup",
     "build:contracts": "./target/bin/soroban contract build",
