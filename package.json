@@ -17,7 +17,7 @@
     "lint:format": "prettier . --write",
     "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "setup": "./initialize.sh ${NETWORK:-testnet}",
-    "clean": "rm -rf .next soroban",
+    "clean": "rm -rf .next .soroban",
     "reset": "npm run clean && npm run setup",
     "build:contracts": "./target/bin/soroban contract build",
     "bindings:localfoodstore": "./target/bin/soroban contract bindings typescript --wasm ./target/wasm32-unknown-unknown/release/stellar_localfoodstore_contract.wasm --id $(cat ./dvillaLocalFoodStore/localfoodstore_id) --output-dir ./dvillaLocalFoodStore/localfoodstore-contract --network $(cat ./dvillaLocalFoodStore/network) --overwrite",

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSorobanReact } from "@soroban-react/core";
 import { Server, TransactionBuilder, Networks, Asset, Operation, Keypair, Horizon } from 'stellar-sdk';
 import toast from 'react-hot-toast';
-import * as loadFoodStoreContract from "soroban/contract-ids/localfoodstore.json";
+import * as loadFoodStoreContract from ".soroban/contract-ids/localfoodstore.json";
 import { signTransaction } from "@stellar/freighter-api";
 import config from '../../../shared/config.json';
 import { useRouter } from 'next/router';
@@ -66,15 +66,14 @@ export const PlaceOrderButton = ({ amount_order, setCartItem }) => {
             if (submitResponse.successful) {
               localStorage.removeItem('cartItems');
               console.log('Transaction successful. Hash:', submitResponse.hash);
-              toast.success('Order placed successfully!');
-              setCartItem([]);
-              router.push("/order-successful");
             } else {
               console.error('Transaction failed:', submitResponse.extras.resultCodes);
               toast.error('Failed to place order. Please try again.');
             }
       
           } catch (error) {
+            toast.success('Order placed successfully!');
+            setCartItem([]);
             console.error('Error invoking contract:', error);
             toast.error('An error occurred. Please try again.');
           }
