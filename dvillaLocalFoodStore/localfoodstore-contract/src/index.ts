@@ -73,21 +73,21 @@ if (typeof window !== 'undefined') {
 
 const regex = /Error\(Contract, #(\d+)\)/;
 
-// function parseError(message: string): Err | undefined {
-//     const match = message.match(regex);
-//     if (!match) {
-//         return undefined;
-//     }
-//     if (Errors === undefined) {
-//         return undefined;
-//     }
-//     let i = parseInt(match[1], 10);
-//     let err = Errors[i];
-//     if (err) {
-//         return new Err(err);
-//     }
-//     return undefined;
-// }
+function parseError(message: string): Err | undefined {
+    const match = message.match(regex);
+    if (!match) {
+        return undefined;
+    }
+    if (Errors === undefined) {
+        return undefined;
+    }
+    let i = parseInt(match[1], 10);
+    let err = Errors[i];
+    if (err) {
+        return new Err(err);
+    }
+    return undefined;
+}
 
 export const networks = {
     testnet: {
@@ -125,9 +125,9 @@ export interface User {
   user: string;
 }
 
-// const Errors = {
+const Errors = {
 
-// }
+}
 
 export class Contract {
             spec: ContractSpec;
