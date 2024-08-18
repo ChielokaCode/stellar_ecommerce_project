@@ -326,14 +326,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
 
 [[package]]
-name = "dvilla_token"
-version = "0.0.6"
-dependencies = [
- "soroban-sdk",
- "soroban-token-sdk",
-]
-
-[[package]]
 name = "ecdsa"
 version = "0.16.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1136,15 +1128,6 @@ dependencies = [
  "stellar-xdr",
  "syn",
  "thiserror",
-]
-
-[[package]]
-name = "soroban-token-sdk"
-version = "21.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fbbc391615615d08de0d6d8214ace08b0b179cbf49700678b3e828cc48aef2b"
-dependencies = [
- "soroban-sdk",
 ]
 
 [[package]]

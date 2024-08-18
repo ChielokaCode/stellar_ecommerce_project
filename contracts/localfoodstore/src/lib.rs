@@ -91,8 +91,6 @@ impl LocalFoodNetwork {
 
     pub fn transfer_xlm(env: Env, from: Address, to: Address, amount: i128) -> u64 {
         from.require_auth();
-
-        // XLM token address (replace with the appropriate network address)
         let xlm_address_str = String::from_str(
             &env,
             "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
@@ -101,27 +99,17 @@ impl LocalFoodNetwork {
         env.storage()
             .persistent()
             .set(&DataKey::Token, &xlm_address);
-
-        // Create a TokenClient for XLM
         let token = TokenClient::new(&env, &xlm_address);
-
-        // Attempt to transfer XLM
         token.transfer(&from, &to, &amount);
-
-        // Generate a unique transaction ID (using the current ledger sequence number)
         let tx_id = env.ledger().sequence();
-
-        // Store the transaction ID
         env.storage()
             .persistent()
             .set(&DataKey::UserTransactionId(from.clone()), &tx_id);
-
-        // Return the transaction ID
         tx_id.into()
     }
 
     pub fn register(e: Env, user_address: Address, name: String, email: String) -> bool {
-        // user_address.require_auth();
+        user_address.require_auth();
 
         let key = DataKey::User(user_address.clone());
 
@@ -166,22 +154,19 @@ impl LocalFoodNetwork {
         return true;
     }
 
-    pub fn login(e: Env, user_address: Address) -> bool {
-        // user_address.require_auth();
-
+    pub fn login(e: Env, user_address: Address) -> String {
+        user_address.require_auth();
+    
         let key = DataKey::User(user_address.clone());
-
-        e.storage().persistent().has(&key)
-    }
-
-    pub fn get_user_name(e: Env, user_address: Address) -> String {
-        let key = DataKey::User(user_address.clone());
+    
         if let Some(user) = e.storage().persistent().get::<_, User>(&key) {
             user.name
         } else {
-            String::from_slice(&e, "User not found")
+            soroban_sdk::String::from_str(&e, "User not found")
         }
     }
+    
+    
 
     pub fn initialize(e: Env, recipient: Address, target_amount: i128, token: Address) {
         assert!(
@@ -202,7 +187,6 @@ impl LocalFoodNetwork {
         user.require_auth();
         // Validate the input
         assert!(amount > 0, "amount must be positive");
-
         // Define the XLM address and token client
         let xlm_address_str = String::from_str(
             &e,
@@ -210,13 +194,10 @@ impl LocalFoodNetwork {
         );
         let xlm_address = Address::from_string(&xlm_address_str);
         let token_client = TokenClient::new(&e, &xlm_address);
-
         // Get the contract's address
         let contract_address: Address = e.current_contract_address();
-
         // Transfer XLM from the user to the contract
         token_client.transfer(&user, &contract_address, &amount);
-
         // Retrieve and increment the order counter using persistent storage
         let order_id = e
             .storage()
@@ -227,7 +208,6 @@ impl LocalFoodNetwork {
         e.storage()
             .persistent()
             .set(&DataKey::OrderCounter, &order_id);
-
         // Create the new order
         let order = Order {
             id: order_id,
@@ -236,14 +216,10 @@ impl LocalFoodNetwork {
             fulfilled: true,
             timestamp: e.ledger().timestamp(),
         };
-
         // Store the order using persistent storage
         e.storage()
             .persistent()
             .set(&DataKey::Order(order_id), &order);
-
-        // Process the user's rewards
-
         // Retrieve and update the user's total order value tracker
         let mut tracker = e
             .storage()
@@ -254,9 +230,7 @@ impl LocalFoodNetwork {
                 reward_percentage: 2,
                 rewards: Vec::new(&e),
             });
-
         tracker.total_value += amount;
-
         // Calculate and store the reward if the total order value exceeds the threshold
         let reward_amount = if tracker.total_value >= 50_000_000 {
             let reward = (tracker.total_value * tracker.reward_percentage as i128) / 100;
@@ -265,12 +239,10 @@ impl LocalFoodNetwork {
             if tracker.reward_percentage == 2 {
                 tracker.reward_percentage = 1; // Change to 1% for subsequent rewards
             }
-
             reward
         } else {
             0 // No reward if total_value is below the threshold
         };
-
         if reward_amount > 0 {
             tracker.rewards.push_back(reward_amount);
 
@@ -285,14 +257,10 @@ impl LocalFoodNetwork {
                 .persistent()
                 .set(&DataKey::UserRewards(user.clone()), &user_rewards);
         }
-
         // Store the updated tracker using persistent storage
         e.storage()
             .persistent()
             .set(&DataKey::UserOrderTracker(user.clone()), &tracker);
-
-        // Emit an event for the placed order
-
         order_id
     }
 
