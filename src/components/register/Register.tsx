@@ -7,6 +7,12 @@ import { useRegisteredContract } from "@soroban-react/contracts";
 import { nativeToScVal } from "@stellar/stellar-sdk";
 import { useSorobanReact } from "@soroban-react/core";
 
+interface InvokeResult {
+  returnValue: {
+    _value: boolean;
+  };
+}
+
 const Register: React.FC = () => {
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
@@ -43,7 +49,7 @@ const Register: React.FC = () => {
         }
 
         if (address) {
-          const result = await contract.invoke({
+          const result = (await contract.invoke({
             method: "register",
             args: [
               nativeToScVal(address, { type: "address" }),
@@ -51,7 +57,7 @@ const Register: React.FC = () => {
               nativeToScVal(userEmail, { type: "string" }),
             ],
             signAndSend: true,
-          });
+          })) as InvokeResult;
           console.log("Registration result:", result.returnValue._value);
           let value = result.returnValue._value;
           if (value) {
