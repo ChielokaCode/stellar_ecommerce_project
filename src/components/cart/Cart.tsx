@@ -28,8 +28,8 @@ const Cart: React.FC = (props) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalAmount, setTotalAmount] = React.useState<number>(0);
   const contract = useRegisteredContract("localfoodstore");
-  const [txHash, setTxHash] = useState<string>("");
-  const [showTxHash, setShowTxHash] = useState<boolean>(false);
+  // const [txHash, setTxHash] = useState<string>("");
+  // const [showTxHash, setShowTxHash] = useState<boolean>(false);
 
   const [amount, setAmount] = useState<number>();
   const sorobanContext = useSorobanReact();
@@ -96,7 +96,7 @@ const Cart: React.FC = (props) => {
         });
         console.log("Place Order result:", result);
 
-        setTxHash(result.txHash);
+        // setTxHash(result.txHash);
         toast.success("Order Placed Successfully");
 
         localStorage.removeItem("cartItems");
@@ -108,9 +108,9 @@ const Cart: React.FC = (props) => {
     }
   };
 
-  const handleOrderTxHash = () => {
-    setShowTxHash(!showTxHash);
-  };
+  // const handleOrderTxHash = () => {
+  //   setShowTxHash(!showTxHash);
+  // };
 
   return (
     <div className="p-4">
@@ -166,18 +166,18 @@ const Cart: React.FC = (props) => {
       <div className="text-right font-bold ">Total: {totalAmount} XLM</div>
       <Stack direction="horizontal">
         <div className="mt-4 text-right">
-          <Stack direction="horizontal" gap={5}>
+          <Stack direction="horizontal" gap={2}>
             <Button className="ml-auto" variant="primary" onClick={handleOrder}>
               Place Order
             </Button>
-            <Button
+            {/* <Button
               className="ml-auto"
               variant="primary"
               onClick={handleOrderTxHash}
             >
               {showTxHash ? "Hide Transaction Hash" : "Show Transaction Hash"}
-            </Button>
-            <div>{showTxHash ? "Order Transaction Hash: " + txHash : ""}</div>
+            </Button> */}
+            {/* <div>{showTxHash ? "Order Transaction Hash: " + txHash : ""}</div> */}
           </Stack>
         </div>
       </Stack>
