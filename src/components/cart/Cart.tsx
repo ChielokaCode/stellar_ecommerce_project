@@ -71,11 +71,6 @@ const Cart: React.FC = (props) => {
     setAmount(newTotal);
   }, [cartItems]);
 
-  // Example TypeScript type guard function
-  function isTxResponse(result: any): result is TxResponse {
-    return (result as TxResponse).txHash !== undefined;
-  }
-
   const handleOrder = async () => {
     try {
       let userLoginCheck = localStorage.getItem("userLoginName");
@@ -100,13 +95,10 @@ const Cart: React.FC = (props) => {
           signAndSend: true,
         });
         console.log("Place Order result:", result);
-        if (isTxResponse(result)) {
-          setTxHash(result.txHash);
-          toast.success("Order Placed Successfully");
-        } else {
-          console.error("Unexpected result type:", result);
-          toast.error("Unexpected result type received.");
-        }
+
+        setTxHash(result.txHash);
+        toast.success("Order Placed Successfully");
+
         localStorage.removeItem("cartItems");
         setCartItems([]);
       }
