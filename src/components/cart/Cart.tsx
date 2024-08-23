@@ -1,9 +1,8 @@
 require("dotenv").config();
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Table } from "react-bootstrap";
+import { Button, Stack, Table } from "react-bootstrap";
 import Image from "next/image";
-import { HStack } from "@chakra-ui/react";
 import toast from "react-hot-toast";
 import { useSorobanReact } from "@soroban-react/core";
 import { useRegisteredContract } from "@soroban-react/contracts";
@@ -29,6 +28,8 @@ const Cart: React.FC = (props) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalAmount, setTotalAmount] = React.useState<number>(0);
   const contract = useRegisteredContract("localfoodstore");
+  const [txHash, setTxHash] = useState<string>("");
+  const [showTxHash, setShowTxHash] = useState<boolean>(false);
 
   const [amount, setAmount] = useState<number>();
   const sorobanContext = useSorobanReact();
@@ -72,6 +73,12 @@ const Cart: React.FC = (props) => {
 
   const handleOrder = async () => {
     try {
+      let userLoginCheck = localStorage.getItem("userLoginName");
+      console.log(userLoginCheck);
+      if (userLoginCheck === "User not found" || userLoginCheck == null) {
+        toast.error("Login User to continue");
+        return;
+      }
       if (!contract) {
         console.error("Contract is not initialized");
         toast.error("Unable to connect to the contract. Please try again.");
@@ -88,7 +95,9 @@ const Cart: React.FC = (props) => {
           signAndSend: true,
         });
         console.log("Place Order result:", result);
+        setTxHash(result.txHash);
         toast.success("Order Placed Successfully");
+
         localStorage.removeItem("cartItems");
         setCartItems([]);
       }
@@ -96,6 +105,10 @@ const Cart: React.FC = (props) => {
       toast.error("Error during Placing Order");
       console.log("Error while Placing Order. Try again", error);
     }
+  };
+
+  const handleOrderTxHash = () => {
+    setShowTxHash(!showTxHash);
   };
 
   return (
@@ -150,13 +163,23 @@ const Cart: React.FC = (props) => {
         </tbody>
       </Table>
       <div className="text-right font-bold ">Total: {totalAmount} XLM</div>
-      <HStack>
+      <Stack direction="horizontal">
         <div className="mt-4 text-right">
-          <Button className="ml-auto" variant="primary" onClick={handleOrder}>
-            Place Order
-          </Button>
+          <Stack direction="horizontal" gap={5}>
+            <Button className="ml-auto" variant="primary" onClick={handleOrder}>
+              Place Order
+            </Button>
+            <Button
+              className="ml-auto"
+              variant="primary"
+              onClick={handleOrderTxHash}
+            >
+              {showTxHash ? "Hide Transaction Hash" : "Show Transaction Hash"}
+            </Button>
+            <div>{showTxHash ? "Order Transaction Hash: " + txHash : ""}</div>
+          </Stack>
         </div>
-      </HStack>
+      </Stack>
       <div className="mt-4 text-center">
         <Link href="/foodItems" passHref>
           <Button variant="success">Back to Food Store</Button>

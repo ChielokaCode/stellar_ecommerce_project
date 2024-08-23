@@ -3,7 +3,6 @@ import { Button } from "react-bootstrap";
 import { useRouter } from "next/router";
 import { isConnected } from "@stellar/freighter-api";
 import toast from "react-hot-toast";
-import NavBar from "../navbar/NavBar";
 import { useRegisteredContract } from "@soroban-react/contracts";
 import { nativeToScVal } from "@stellar/stellar-sdk";
 import { useSorobanReact } from "@soroban-react/core";
@@ -53,9 +52,14 @@ const Register: React.FC = () => {
             ],
             signAndSend: true,
           });
-          console.log("Registration result:", result);
-          toast.success("User Registered Successfully");
-          router.push("/foodItems");
+          console.log("Registration result:", result.returnValue._value);
+          let value = result.returnValue._value;
+          if (value) {
+            toast.success("User Registered Successfully");
+            router.push("/");
+          } else {
+            toast.error("User already has an account, Login");
+          }
         }
       } catch (error) {
         toast.error("Error during Registration");
@@ -84,7 +88,6 @@ const Register: React.FC = () => {
 
   return (
     <>
-      <NavBar />
       <div className="flex items-center justify-center min-h-screen bg-gray-100 m-4">
         <Button
           className="ms-auto bg-transparent text-black"

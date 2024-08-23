@@ -14,7 +14,8 @@ import { nativeToScVal } from "@stellar/stellar-sdk";
 
 function NavBar() {
   const router = useRouter();
-  const [logInUser, setLogInUser] = useState(false);
+  const [logInUser, setLogInUser] = useState("");
+  const [showButtons, setShowButtons] = useState(true);
   const sorobanContext = useSorobanReact();
   const { address } = sorobanContext;
   const contract = useRegisteredContract("localfoodstore");
@@ -22,10 +23,6 @@ function NavBar() {
   const navigateRegPage = () => {
     router.push("/register");
   };
-
-  // const navigateLoginPage =() => {
-  //   router.push("/foodItems");
-  // };
 
   const handleLogin = async () => {
     if (!address) {
@@ -38,14 +35,29 @@ function NavBar() {
       args: [nativeToScVal(address, { type: "address" })],
       signAndSend: true,
     });
-    toast.success("User Logged In Successfully");
-    setLogInUser(true);
-    router.push("/foodItems");
+    console.log("Login result:", result.returnValue._value);
+    let value = result.returnValue._value;
+
+    const decoder = new TextDecoder("utf-8");
+    const decodedString = decoder.decode(value);
+    if (decodedString === "User not found") {
+      toast.error("User not Found... Register");
+      localStorage.setItem("userLoginName", decodedString);
+    } else {
+      toast.success("User Login Successfully");
+      localStorage.setItem("userLoginName", decodedString);
+      setLogInUser(decodedString);
+      setShowButtons(false);
+    }
   };
 
-  // const handleLogOut = () => {
-  //   setLogInUser(false);
-  // };
+  const handleLogOut = () => {
+    setShowButtons(true);
+    setLogInUser("");
+    localStorage.clear();
+    toast.success("User Logged Out Successfully");
+    router.push("/");
+  };
 
   return (
     <Navbar expand="lg" className="bg-body-tertiary">
@@ -74,15 +86,28 @@ function NavBar() {
             </Nav.Link>
           </Nav>
           <Stack direction="horizontal" gap={3}>
-            <div>{logInUser}</div>
-            <Stack direction="horizontal" gap={2}>
-              <Button variant="success" onClick={navigateRegPage}>
-                Register
+            <div className="font-bold">
+              {logInUser ? `Hello ${logInUser}` : ""}
+            </div>
+            {showButtons ? (
+              <Stack direction="horizontal" gap={2}>
+                <Button variant="success" onClick={navigateRegPage}>
+                  Register
+                </Button>
+                <Button variant="success" onClick={handleLogin}>
+                  Login
+                </Button>
+              </Stack>
+            ) : (
+              ""
+            )}
+            {showButtons ? (
+              ""
+            ) : (
+              <Button variant="success" onClick={handleLogOut}>
+                Log Out
               </Button>
-              <Button variant="success" onClick={handleLogin}>
-                Login
-              </Button>
-            </Stack>
+            )}
             <ConnectButton />
           </Stack>
         </Navbar.Collapse>
