@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState } from "react";
 import { Button } from "react-bootstrap";
 import { useRouter } from "next/router";
 import { isConnected } from "@stellar/freighter-api";
@@ -7,15 +7,9 @@ import { useRegisteredContract } from "@soroban-react/contracts";
 import { nativeToScVal } from "@stellar/stellar-sdk";
 import { useSorobanReact } from "@soroban-react/core";
 
-interface InvokeResult {
-  returnValue: {
-    _value: boolean;
-  };
-}
-
-const Register: React.FC = () => {
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
+const Register = () => {
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const router = useRouter();
 
   const sorobanContext = useSorobanReact();
@@ -48,24 +42,22 @@ const Register: React.FC = () => {
           return;
         }
 
-        if (address) {
-          const result = (await contract.invoke({
-            method: "register",
-            args: [
-              nativeToScVal(address, { type: "address" }),
-              nativeToScVal(userName, { type: "string" }),
-              nativeToScVal(userEmail, { type: "string" }),
-            ],
-            signAndSend: true,
-          })) as InvokeResult;
-          console.log("Registration result:", result.returnValue._value);
-          let value = result.returnValue._value;
-          if (value) {
-            toast.success("User Registered Successfully");
-            router.push("/");
-          } else {
-            toast.error("User already has an account, Login");
-          }
+        const result = await contract.invoke({
+          method: "register",
+          args: [
+            nativeToScVal(address, { type: "address" }),
+            nativeToScVal(userName, { type: "string" }),
+            nativeToScVal(userEmail, { type: "string" }),
+          ],
+          signAndSend: true,
+        });
+        console.log("Registration result:", result.returnValue._value);
+        let value = result.returnValue._value;
+        if (value) {
+          toast.success("User Registered Successfully");
+          router.push("/");
+        } else {
+          toast.error("User already has an account, Login");
         }
       } catch (error) {
         toast.error("Error during Registration");
@@ -80,11 +72,11 @@ const Register: React.FC = () => {
     }
   };
 
-  const handleNameChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleNameChange = (e) => {
     setUserName(e.target.value);
   };
 
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleEmailChange = (e) => {
     setUserEmail(e.target.value);
   };
 
