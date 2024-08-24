@@ -282,7 +282,9 @@ impl LocalFoodNetwork {
                 .persistent()
                 .get::<_, Vec<i128>>(&DataKey::UserRewards(user.clone()))
                 .unwrap_or(Vec::new(&e));
+
             user_rewards.push_back(reward_amount);
+
             e.storage()
                 .persistent()
                 .set(&DataKey::UserRewards(user.clone()), &user_rewards);
@@ -313,13 +315,13 @@ impl LocalFoodNetwork {
 
     pub fn process_user_reward(e: Env, user: Address) -> bool {
         user.require_auth();
-
+    
         let total_reward = Self::get_total_user_rewards(e.clone(), user.clone());
-
+    
         if total_reward == 0 {
             return false; // No rewards to process
         }
-
+    
         // Perform the withdrawal
         let xlm_address_str = String::from_str(
             &e,
@@ -327,14 +329,14 @@ impl LocalFoodNetwork {
         );
         let xlm_address = Address::from_string(&xlm_address_str);
         let token_client = TokenClient::new(&e, &xlm_address);
-
+    
         // Get the contract's address
         let contract_address = e.current_contract_address();
-
-        // Transfer XLM from the user to the contract
+    
+        // Transfer XLM from the contract to the user
         token_client.transfer(&contract_address, &user, &total_reward);
-
-        // Clear the rewards
+    
+        // Clear the tracker rewards vector
         let mut tracker = e
             .storage()
             .persistent()
@@ -344,18 +346,25 @@ impl LocalFoodNetwork {
                 reward_percentage: 2,
                 rewards: Vec::new(&e),
             });
-
-        // Clear the rewards vector
+    
         tracker.rewards = Vec::new(&e);
-
+        tracker.total_value = 0;
+    
         // Update the tracker in storage
         e.storage()
             .persistent()
             .set(&DataKey::UserOrderTracker(user.clone()), &tracker);
+    
+        // Clear the UserRewards vector
+        let user_rewards: Vec<i128> = Vec::new(&e); // Initialize a new, empty Vec<i128>
 
+        // Update the persistent storage with the cleared vector
+        e.storage()
+            .persistent()
+            .set(&DataKey::UserRewards(user.clone()), &user_rewards);
+    
         true // Rewards were successfully processed and cleared
     }
-
 
     pub fn get_orders_by_user(e: Env, user: Address) -> Vec<Order> {
         // Retrieve the user's order vector from persistent storage

@@ -192,7 +192,20 @@ const Cart = (props) => {
             >
               {showTxHash ? "Hide Transaction Hash" : "Show Transaction Hash"}
             </Button>
-            <div>{showTxHash ? "Order Transaction Hash: " + txHash : ""}</div>
+            <div>
+              {showTxHash && (
+                <p>
+                  Order Transaction Hash:{" "}
+                  <a
+                    href={`https://stellar.expert/explorer/testnet/search?term=${txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <strong className="font-bold">View Transaction</strong>
+                  </a>
+                </p>
+              )}
+            </div>
           </Stack>
         </div>
       </Stack>
