@@ -1,4 +1,4 @@
-import ViewUserOrders from "@/components/viewOrder/viewUserOrders";
+import ViewUserOrders from "@/components/viewOrder/ViewUserOrders";
 import React from "react";
 
 const viewOrders = () => {
