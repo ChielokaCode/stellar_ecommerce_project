@@ -58,7 +58,6 @@ const Cart = (props) => {
   const handleOrder = async () => {
     try {
       let userLoginCheck = localStorage.getItem("userLoginName");
-      console.log(userLoginCheck);
       if (userLoginCheck === "User not found" || userLoginCheck == null) {
         toast.error("Login User to continue");
         return;

@@ -13,6 +13,11 @@ const ViewUserOrders = () => {
   useEffect(() => {
     const checkUserReward = async () => {
       try {
+        let userLoginCheck = localStorage.getItem("userLoginName");
+        if (userLoginCheck === "User not found" || userLoginCheck == null) {
+          toast.error("Login User to continue");
+          return;
+        }
         if (!contract) {
           console.error("Contract is not initialized");
           toast.error("Unable to connect to the contract. Please try again.");
