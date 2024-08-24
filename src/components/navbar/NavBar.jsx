@@ -84,6 +84,9 @@ function NavBar() {
             <Nav.Link as={Link} href="/reward">
               Rewards
             </Nav.Link>
+            <Nav.Link as={Link} href="/viewOrders">
+              View Orders
+            </Nav.Link>
           </Nav>
           <Stack direction="horizontal" gap={3}>
             <div className="font-bold">

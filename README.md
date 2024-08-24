@@ -26,6 +26,36 @@ npm install
 npm run dev
 ```
 
+If you make changes to the contract functions, deploy the contract by following this commands
+
+```bash
+stellar contract install \
+--network testnet \
+--source token-admin \
+--wasm target/wasm32-unknown-unknown/release/stellar_localfoodstore_contract.wasm
+```
+
+Replace the WASM Hash generated above into the (--wasm-hash) below
+
+```bash
+stellar contract deploy \
+--wasm-hash f02ce4b958e5e5d426e40787486d6c46fdc4826c874b93e307dac74f1191f1db \
+--source token-admin \
+--network testnet
+```
+
+Then copy and paste the deployed contract address into the "deployments.json" file located in the contracts folder
+
+```bash
+[
+{
+    "contractId": "localfoodstore",
+    "networkPassphrase": "Test SDF Network ; September 2015",
+    "contractAddress": "CAIX6652FLBZZRDQW3T5AUPKL3232PNUN33QUOROLWVWYY6G2GFHODL3"
+  }
+]
+```
+
 ## License
 
 [MIT Licence](https://github.com/ChielokaCode/stellar_ecommerce_project/blob/main/LICENSE) is added to Repo

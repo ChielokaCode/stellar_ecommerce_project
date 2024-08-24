@@ -11,6 +11,7 @@ pub enum DataKey {
     Order(u64),
     Recipient,
     User(Address),
+    UserOrders(Address),
     Token,
     RecipientClaimed,
     TargetAmount,
@@ -220,6 +221,24 @@ impl LocalFoodNetwork {
         e.storage()
             .persistent()
             .set(&DataKey::Order(order_id), &order);
+
+        // Retrieve the user's order vector or create a new one if it doesn't exist
+        let mut user_orders = e
+           .storage()
+           .persistent()
+           .get(&DataKey::UserOrders(user.clone()))
+           .unwrap_or_else(|| Vec::new(&e));
+
+        // Append the new order object to the user's order vector
+        user_orders.push_back(order);
+
+        // Save the updated user order vector back to persistent storage
+        e.storage()
+         .persistent()
+         .set(&DataKey::UserOrders(user.clone()), &user_orders);
+
+
+
         // Retrieve and update the user's total order value tracker
         let mut tracker = e
             .storage()
@@ -232,7 +251,7 @@ impl LocalFoodNetwork {
             });
         tracker.total_value += amount;
         // Calculate and store the reward if the total order value exceeds the threshold
-        let reward_amount = if tracker.total_value >= 50_000_000 {
+        let reward_amount = if tracker.total_value >= 1_000_000_000 {
             let reward = (tracker.total_value * tracker.reward_percentage as i128) / 100;
             tracker.total_value = 0; // Reset total_value after reaching the threshold
 
@@ -326,26 +345,16 @@ impl LocalFoodNetwork {
         true // Rewards were successfully processed and cleared
     }
 
-    pub fn get_orders_by_user(e: Env, user: Address, start: u64, limit: u64) -> Vec<Order> {
-        let mut orders = Vec::new(&e);
-        let order_count = e
+
+    pub fn get_orders_by_user(e: Env, user: Address) -> Vec<Order> {
+        // Retrieve the user's order vector from persistent storage
+        let user_orders = e
             .storage()
             .persistent()
-            .get(&DataKey::OrderCounter)
-            .unwrap_or(0);
-
-        for id in start..cmp::min(start + limit, order_count + 1) {
-            if let Some(order) = e
-                .storage()
-                .persistent()
-                .get::<DataKey, Order>(&DataKey::Order(id))
-            {
-                if order.user == user {
-                    orders.push_back(order);
-                }
-            }
-        }
-
-        orders
+            .get(&DataKey::UserOrders(user.clone()))
+            .unwrap_or_else(|| Vec::new(&e)); // Return an empty vector if the user has no orders
+    
+        user_orders
     }
+    
 }
