@@ -14,6 +14,15 @@ const Reward = () => {
 
   const handleViewReward = async () => {
     try {
+      if (!address) {
+        toast.error("Connect Wallet to continue");
+        return;
+      }
+      let userLoginCheck = localStorage.getItem("userLoginName");
+      if (userLoginCheck === "User not found" || userLoginCheck == null) {
+        toast.error("Login User to continue");
+        return;
+      }
       if (!contract) {
         console.error("Contract is not initialized");
         toast.error("Unable to connect to the contract. Please try again.");
@@ -44,11 +53,16 @@ const Reward = () => {
   };
 
   const handleClaimReward = async () => {
-    if (!address) {
-      toast.error("Connect Wallet to continue");
-      return;
-    }
     try {
+      if (!address) {
+        toast.error("Connect Wallet to continue");
+        return;
+      }
+      let userLoginCheck = localStorage.getItem("userLoginName");
+      if (userLoginCheck === "User not found" || userLoginCheck == null) {
+        toast.error("Login User to continue");
+        return;
+      }
       if (!contract) {
         console.error("Contract is not initialized");
         toast.error("Unable to connect to the contract. Please try again.");

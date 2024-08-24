@@ -13,6 +13,10 @@ const ViewUserOrders = () => {
 
   const handleViewOrder = async () => {
     try {
+      if (!address) {
+        toast.error("Connect Wallet to continue");
+        return;
+      }
       let userLoginCheck = localStorage.getItem("userLoginName");
       if (userLoginCheck === "User not found" || userLoginCheck == null) {
         toast.error("Login User to continue");
