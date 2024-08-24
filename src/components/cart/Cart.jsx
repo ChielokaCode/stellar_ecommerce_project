@@ -14,6 +14,7 @@ const Cart = (props) => {
   const contract = useRegisteredContract("localfoodstore");
   const [txHash, setTxHash] = useState("");
   const [showTxHash, setShowTxHash] = useState(false);
+  const [specificCartItem, setSpecificCartItem] = useState([]);
 
   const [amount, setAmount] = useState();
   const sorobanContext = useSorobanReact();
@@ -53,7 +54,26 @@ const Cart = (props) => {
     const newTotal = calculateTotal();
     setTotalAmount(newTotal * 10 ** 7);
     setAmount(newTotal);
+
+    // Map through cartItems and create the specificCartItems array
+    const mappedCartItems = cartItems.map((item) => ({
+      name: item.name, // Extract the name field
+      quantity: item.quantity, // Extract the quantity field
+      price: item.price, // Extract the price field
+    }));
+
+    setSpecificCartItem(mappedCartItems);
   }, [cartItems]);
+
+  // Convert CartItem to the expected format for Soroban
+  const serializeCartItem = (item) => [
+    nativeToScVal(item.name, { type: "string" }),
+    nativeToScVal(item.quantity, { type: "u32" }),
+    nativeToScVal(item.price * 10 ** 7, { type: "i128" }),
+  ];
+
+  // Convert an array of CartItems
+  const serializeCartItems = (items) => items.map(serializeCartItem);
 
   const handleOrder = async () => {
     try {
@@ -68,12 +88,22 @@ const Cart = (props) => {
         return;
       }
 
+      const serializedItems = serializeCartItems(specificCartItem);
+
+      // Flatten the serialized items array to pass it correctly
+      //const flattenedItems = serializedItems.flat();
+      console.log("Specific Cart Item: ", specificCartItem);
+      console.log("Serialized Cart Item: ", serializedItems);
+
+      // console.log("Flattened Cart Item: ", flattenedItems);
+
       if (address) {
         const result = await contract.invoke({
           method: "place_order",
           args: [
             nativeToScVal(address, { type: "address" }),
             nativeToScVal(totalAmount, { type: "i128" }),
+            nativeToScVal(serializedItems, { type: "array" }), //remove if error arises
           ],
           signAndSend: true,
         });
@@ -146,7 +176,9 @@ const Cart = (props) => {
           ))}
         </tbody>
       </Table>
-      <div className="text-right font-bold ">Total: {totalAmount} XLM</div>
+      <div className="text-right font-bold ">
+        <strong>Total: {totalAmount / 10_000_000} XLM</strong>
+      </div>
       <Stack direction="horizontal">
         <div className="mt-4 text-right">
           <Stack direction="horizontal" gap={2}>

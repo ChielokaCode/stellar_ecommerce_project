@@ -12,41 +12,36 @@ const Reward = () => {
   const { address } = sorobanContext;
   const contract = useRegisteredContract("localfoodstore");
 
-  useEffect(() => {
-    const checkUserReward = async () => {
-      try {
-        if (!contract) {
-          console.error("Contract is not initialized");
-          toast.error("Unable to connect to the contract. Please try again.");
-          return;
-        }
+  const handleViewReward = async () => {
+    try {
+      if (!contract) {
+        console.error("Contract is not initialized");
+        toast.error("Unable to connect to the contract. Please try again.");
+        return;
+      }
 
-        if (address) {
-          const result = await contract.invoke({
-            method: "get_total_user_rewards",
-            args: [nativeToScVal(address, { type: "address" })],
-          });
-          console.log("User Rewards result:", result);
-          if (result) {
-            const result_userReward = scValToNative(
-              result as xdr.ScVal
-            ) as i128;
+      if (address) {
+        const result = await contract.invoke({
+          method: "get_total_user_rewards",
+          args: [nativeToScVal(address, { type: "address" })],
+        });
+        console.log("User Rewards result:", result);
+        if (result) {
+          const result_userReward = scValToNative(result as xdr.ScVal) as i128;
 
-            console.log(result_userReward);
-            if (result_userReward !== null && result_userReward !== undefined) {
-              toast.success("User Reward fetched Successfully");
-              const numberValue = Number(result_userReward);
-              setRewardAmt(numberValue / 10_000_000);
-            }
+          console.log(result_userReward);
+          if (result_userReward !== null && result_userReward !== undefined) {
+            toast.success("User Reward fetched Successfully");
+            const numberValue = Number(result_userReward);
+            setRewardAmt(numberValue / 10_000_000);
           }
         }
-      } catch (error) {
-        toast.error("Error during fetching User Reward");
-        console.log("Error while Fetching user Reward. Try again", error);
       }
-    };
-    checkUserReward();
-  }, [address]);
+    } catch (error) {
+      toast.error("Error during fetching User Reward");
+      console.log("Error while Fetching user Reward. Try again", error);
+    }
+  };
 
   const handleClaimReward = async () => {
     if (!address) {
@@ -78,13 +73,16 @@ const Reward = () => {
   return (
     <Container>
       <h5 className="m-4">
-        <b>Note: </b>You can start earning after you have bought orders over 50
+        <b>Note: </b>You can start earning after you have bought orders over 100
         XLM
       </h5>
       <div className="w-1/4 bg-zinc-300 rounded-xl shadow-lg border-2 border-black p-4 m-4">
         <Stack direction="vertical" gap={50}>
           <Stack direction="horizontal">
-            <h4>Your daily reward:</h4>
+            <h4>Your daily reward: </h4>
+            <Button variant="success" onClick={handleViewReward}>
+              View Reward
+            </Button>
             <h5 className="ms-auto">XLM {rewardAmt}</h5>
           </Stack>
           <h3>Click on button to claim</h3>

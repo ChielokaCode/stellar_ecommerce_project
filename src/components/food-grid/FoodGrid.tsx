@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Row, Col, Card, Button, Stack } from 'react-bootstrap';
-import Image from 'next/image';
-import Link from 'next/link';
-import foodItems from './foodItems';
-import toast from 'react-hot-toast';
-import {useSorobanReact} from "@soroban-react/core";
+import React, { useState } from "react";
+import { Row, Col, Card, Button, Stack } from "react-bootstrap";
+import Image from "next/image";
+import Link from "next/link";
+import foodItems from "./foodItems";
+import toast from "react-hot-toast";
+import { useSorobanReact } from "@soroban-react/core";
 
 // Define types for the food item and cart item
 interface FoodItem {
@@ -18,7 +18,6 @@ interface FoodItem {
   quantity: number;
 }
 
-
 const FoodGrid: React.FC = () => {
   const sorobanContext = useSorobanReact();
   const { address } = sorobanContext;
@@ -31,14 +30,13 @@ const FoodGrid: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const saveCartToLocalStorage = (items: CartItem[]) => {
-    console.log(JSON.stringify(items));
-    localStorage.setItem('cartItems', JSON.stringify(items));
+    localStorage.setItem("cartItems", JSON.stringify(items));
   };
 
   const addToCart = (item: FoodItem) => {
-    if(!address){
+    if (!address) {
       toast.error("Please connect wallet to continue");
-      return
+      return;
     }
 
     setCartItems((prevItems) => {
@@ -46,9 +44,7 @@ const FoodGrid: React.FC = () => {
       let updatedItems: CartItem[];
       if (existingItem) {
         updatedItems = prevItems.map((i) =>
-          i.id === item.id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       } else {
         updatedItems = [...prevItems, { ...item, quantity: 1 }];
@@ -72,7 +68,7 @@ const FoodGrid: React.FC = () => {
                   alt={item.name}
                   width={300}
                   height={200}
-                
+                  layout="responsive"
                 />
                 <Card.Body>
                   <Stack direction="vertical" gap={3}>
@@ -83,7 +79,9 @@ const FoodGrid: React.FC = () => {
                       </Card.Text>
                     </Stack>
                     <Card.Text>{item.description}</Card.Text>
-                    <Card.Text className="text-muted"><b>XLM</b> {item.price}</Card.Text>
+                    <Card.Text className="text-muted">
+                      <b>XLM</b> {item.price}
+                    </Card.Text>
                     <Button
                       variant="primary"
                       onClick={() => addToCart(item)}

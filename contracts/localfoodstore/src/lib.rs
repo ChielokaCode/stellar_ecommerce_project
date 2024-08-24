@@ -39,13 +39,23 @@ pub struct UserOrderTracker {
 
 #[derive(Clone)]
 #[contracttype]
+pub struct CartItem {
+    name: String,
+    quantity: u32,
+    price: i128,
+}
+
+#[derive(Clone)]
+#[contracttype]
 pub struct Order {
     id: u64,
     user: Address,
     amount: i128,
     fulfilled: bool,
     timestamp: u64,
+    items: Vec<CartItem>,
 }
+
 
 #[derive(Clone)]
 #[contracttype]
@@ -184,7 +194,7 @@ impl LocalFoodNetwork {
         e.storage().persistent().set(&DataKey::Token, &token);
     }
 
-    pub fn place_order(e: Env, user: Address, amount: i128) -> u64 {
+    pub fn place_order(e: Env, user: Address, amount: i128, items: Vec<CartItem>) -> u64 {
         user.require_auth();
         // Validate the input
         assert!(amount > 0, "amount must be positive");
@@ -216,6 +226,7 @@ impl LocalFoodNetwork {
             amount,
             fulfilled: true,
             timestamp: e.ledger().timestamp(),
+            items,
         };
         // Store the order using persistent storage
         e.storage()

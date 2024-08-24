@@ -2,11 +2,11 @@
   {
     "contractId": "localfoodstore",
     "networkPassphrase": "Standalone Network ; February 2017",
-    "contractAddress": "CAIX6652FLBZZRDQW3T5AUPKL3232PNUN33QUOROLWVWYY6G2GFHODL3"
+    "contractAddress": "CDICLMYEBFDEWOZZK4KIAMP2Z4SMQLHBHNQBPXJE7QFH37VPFH4RRGTB"
   },
   {
     "contractId": "localfoodstore",
     "networkPassphrase": "Test SDF Network ; September 2015",
-    "contractAddress": "CAIX6652FLBZZRDQW3T5AUPKL3232PNUN33QUOROLWVWYY6G2GFHODL3"
+    "contractAddress": "CDICLMYEBFDEWOZZK4KIAMP2Z4SMQLHBHNQBPXJE7QFH37VPFH4RRGTB"
   }
 ]
