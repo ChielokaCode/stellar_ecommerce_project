@@ -11,6 +11,7 @@ pub enum DataKey {
     Order(u64),
     Recipient,
     User(Address),
+    AllOrders,
     UserOrders(Address),
     Token,
     RecipientClaimed,
@@ -54,6 +55,8 @@ pub struct Order {
     fulfilled: bool,
     timestamp: u64,
     items: Vec<CartItem>,
+    home_address: String, 
+    user_name: String,
 }
 
 
@@ -100,7 +103,7 @@ impl LocalFoodNetwork {
         client.balance(&e.current_contract_address())
     }
 
-    pub fn transfer_xlm(env: Env, from: Address, to: Address, amount: i128) -> u64 {
+    pub fn transfer_xlm(env: Env, from: Address, to: Address, amount: i128) {
         from.require_auth();
         let xlm_address_str = String::from_str(
             &env,
@@ -112,11 +115,6 @@ impl LocalFoodNetwork {
             .set(&DataKey::Token, &xlm_address);
         let token = TokenClient::new(&env, &xlm_address);
         token.transfer(&from, &to, &amount);
-        let tx_id = env.ledger().sequence();
-        env.storage()
-            .persistent()
-            .set(&DataKey::UserTransactionId(from.clone()), &tx_id);
-        tx_id.into()
     }
 
     pub fn register(e: Env, user_address: Address, name: String, email: String) -> bool {
@@ -194,62 +192,62 @@ impl LocalFoodNetwork {
         e.storage().persistent().set(&DataKey::Token, &token);
     }
 
-    pub fn place_order(e: Env, user: Address, amount: i128, items: Vec<CartItem>) -> u64 {
-        user.require_auth();
-        // Validate the input
-        assert!(amount > 0, "amount must be positive");
-        // Define the XLM address and token client
-        let xlm_address_str = String::from_str(
-            &e,
-            "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
-        );
-        let xlm_address = Address::from_string(&xlm_address_str);
-        let token_client = TokenClient::new(&e, &xlm_address);
-        // Get the contract's address
-        let contract_address: Address = e.current_contract_address();
-        // Transfer XLM from the user to the contract
-        token_client.transfer(&user, &contract_address, &amount);
-        // Retrieve and increment the order counter using persistent storage
-        let order_id = e
+
+
+    pub fn place_order_final(e: Env, delivery: Address, user: Address, amount: i128, order_id: u64) {
+        delivery.require_auth();
+    
+        // Retrieve the list of all orders
+        let all_orders: Vec<Order> = e.storage()
+            .persistent()
+            .get(&DataKey::AllOrders)
+            .unwrap_or_else(|| Vec::new(&e));
+    
+        // Retrieve the user's orders
+        let mut user_orders: Vec<Order> = e
             .storage()
             .persistent()
-            .get(&DataKey::OrderCounter)
-            .unwrap_or(0)
-            + 1;
+            .get(&DataKey::UserOrders(user.clone()))
+            .unwrap_or_else(|| Vec::new(&e));
+    
+        // Modify user_orders to mark the correct order as fulfilled
+        let mut updated_all_orders = Vec::new(&e);
+        let mut updated_user_orders = Vec::new(&e);
+        for user_order in user_orders {
+            if all_orders.iter().any(|order| order.id == order_id && order.timestamp == user_order.timestamp) {
+                let mut updated_order = user_order.clone();
+                updated_order.fulfilled = true;
+
+            //////////////////    
+                for all_order in all_orders.iter() {
+                    if all_order.id == order_id && all_order.timestamp == user_order.timestamp {
+                        let mut updated_all_order = all_order;
+                        updated_all_order.fulfilled = true;
+                        updated_all_orders.push_back(updated_all_order);
+                    } else {
+                        updated_all_orders.push_back(all_order);
+                    }
+                }
+//////////////////
+                updated_user_orders.push_back(updated_order);
+            } else {
+                updated_user_orders.push_back(user_order);
+            }
+        }
+
+        // Update the user orders in storage with the modified vector
         e.storage()
             .persistent()
-            .set(&DataKey::OrderCounter, &order_id);
-        // Create the new order
-        let order = Order {
-            id: order_id,
-            user: user.clone(),
-            amount,
-            fulfilled: true,
-            timestamp: e.ledger().timestamp(),
-            items,
-        };
-        // Store the order using persistent storage
-        e.storage()
+            .set(&DataKey::UserOrders(user.clone()), &updated_user_orders);
+
+            e.storage()
             .persistent()
-            .set(&DataKey::Order(order_id), &order);
+            .set(&DataKey::AllOrders, &updated_all_orders);
 
-        // Retrieve the user's order vector or create a new one if it doesn't exist
-        let mut user_orders = e
-           .storage()
-           .persistent()
-           .get(&DataKey::UserOrders(user.clone()))
-           .unwrap_or_else(|| Vec::new(&e));
-
-        // Append the new order object to the user's order vector
-        user_orders.push_back(order);
-
-        // Save the updated user order vector back to persistent storage
-        e.storage()
-         .persistent()
-         .set(&DataKey::UserOrders(user.clone()), &user_orders);
-
-
-
+        // Get the contract's address and transfer tokens from the user to the contract
+        let contract_address = e.current_contract_address();
+        Self::transfer_xlm(e.clone(), user.clone(), contract_address, amount);
+    
         // Retrieve and update the user's total order value tracker
         let mut tracker = e
             .storage()
@@ -260,12 +258,13 @@ impl LocalFoodNetwork {
                 reward_percentage: 2,
                 rewards: Vec::new(&e),
             });
+    
+        // Update the total value and check for rewards
         tracker.total_value += amount;
-        // Calculate and store the reward if the total order value exceeds the threshold
         let reward_amount = if tracker.total_value >= 1_000_000_000 {
             let reward = (tracker.total_value * tracker.reward_percentage as i128) / 100;
             tracker.total_value = 0; // Reset total_value after reaching the threshold
-
+    
             if tracker.reward_percentage == 2 {
                 tracker.reward_percentage = 1; // Change to 1% for subsequent rewards
             }
@@ -273,35 +272,129 @@ impl LocalFoodNetwork {
         } else {
             0 // No reward if total_value is below the threshold
         };
+    
         if reward_amount > 0 {
             tracker.rewards.push_back(reward_amount);
-
+    
             // Store cumulative rewards using persistent storage
             let mut user_rewards = e
                 .storage()
                 .persistent()
                 .get::<_, Vec<i128>>(&DataKey::UserRewards(user.clone()))
                 .unwrap_or(Vec::new(&e));
-
+    
             user_rewards.push_back(reward_amount);
-
+    
             e.storage()
                 .persistent()
                 .set(&DataKey::UserRewards(user.clone()), &user_rewards);
         }
+    
         // Store the updated tracker using persistent storage
         e.storage()
             .persistent()
             .set(&DataKey::UserOrderTracker(user.clone()), &tracker);
-        order_id
     }
+    
+    
+    
+    
 
-    pub fn get_order(e: Env, order_id: u64) -> Order {
+    pub fn place_order(e: Env, user: Address, amount: i128, items: Vec<CartItem>, home_address: String, user_name: String) -> u64 {
+        user.require_auth();
+        
+        // Validate the input
+        assert!(amount > 0, "amount must be positive");
+        
+        // Increment and retrieve the order ID
+        let order_id = e
+            .storage()
+            .persistent()
+            .get(&DataKey::OrderCounter)
+            .unwrap_or(0)
+            + 1;
         e.storage()
             .persistent()
-            .get(&DataKey::Order(order_id))
-            .unwrap_or_else(|| panic!("Order not found"))
+            .set(&DataKey::OrderCounter, &order_id);
+        
+        // Create the new order
+        let order = Order {
+            id: order_id,
+            user: user.clone(),
+            amount,
+            fulfilled: false,
+            timestamp: e.ledger().timestamp(),
+            items,
+            home_address,
+            user_name,
+        };
+        
+        // Store the order using persistent storage
+        e.storage()
+            .persistent()
+            .set(&DataKey::Order(order_id), &order);
+    
+        // Retrieve the user's order vector or create a new one if it doesn't exist
+        let mut user_orders = e
+            .storage()
+            .persistent()
+            .get(&DataKey::UserOrders(user.clone()))
+            .unwrap_or_else(|| Vec::new(&e));
+        
+        // Append the new order's ID to the user's order vector
+        user_orders.push_back(order.clone());
+        
+        // Save the updated user order vector back to persistent storage
+        e.storage()
+            .persistent()
+            .set(&DataKey::UserOrders(user.clone()), &user_orders);
+    
+        // Retrieve or create the global orders vector
+        let mut all_orders = e
+            .storage()
+            .persistent()
+            .get(&DataKey::AllOrders)
+            .unwrap_or_else(|| Vec::new(&e));
+        
+        // Append the new order ID to the global orders vector
+        all_orders.push_back(order.clone());
+        
+        // Save the updated global orders vector back to persistent storage
+        e.storage()
+            .persistent()
+            .set(&DataKey::AllOrders, &all_orders);
+        
+        order_id
     }
+    
+
+    pub fn get_all_unfulfilled_orders(e: Env) -> Vec<Order> {
+        let mut unfulfilled_orders = Vec::new(&e);
+    
+        let order_list: Vec<Order> = e.storage()
+            .persistent()
+            .get(&DataKey::AllOrders)
+            .unwrap_or_else(|| Vec::new(&e));
+    
+        for order in order_list {
+            if !order.fulfilled {
+                unfulfilled_orders.push_back(order);
+            }
+        }
+    
+        unfulfilled_orders
+    }
+
+    pub fn get_all_orders(e: Env) -> Vec<Order> {
+        let order_list: Vec<Order> = e.storage()
+            .persistent()
+            .get(&DataKey::AllOrders)
+            .unwrap_or_else(|| Vec::new(&e));
+    
+        order_list
+    }
+    
+    
 
     pub fn get_total_user_rewards(e: Env, user: Address) -> i128 {
         // user.require_auth();

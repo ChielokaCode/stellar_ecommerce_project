@@ -55,6 +55,7 @@
     "react-hook-form": "^7.52.2",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^4.11.0",
+    "react-signature-pad-wrapper": "^4.0.2",
     "sharp": "^0.32.6",
     "soroban-client": "^1.0.1",
     "spinners-react": "^1.0.7",

@@ -95,7 +95,7 @@ const ViewUserOrders = () => {
               </p>
               <p className="text-lg">
                 <strong className="font-bold">Fulfilled: </strong>
-                {order.fulfilled ? "Yes" : "No"}
+                {order.fulfilled ? "Yes, Food Items delivered and Payment Successful" : "No, Food Items not Delivered"}
               </p>
               <p className="text-lg">
                 <strong className="font-bold">ID: </strong>
@@ -104,6 +104,14 @@ const ViewUserOrders = () => {
               <p className="text-lg">
                 <strong className="font-bold">Timestamp: </strong>
                 {convertDateAndTime(order.timestamp)}
+              </p>
+              <p className="text-lg">
+                <strong className="font-bold">Deliver to Address: </strong>
+                {order.home_address}
+              </p>
+              <p className="text-lg">
+                <strong className="font-bold">User Name: </strong>
+                {order.user_name}
               </p>
               <br />
               <h3 className="text-xl font-semibold">

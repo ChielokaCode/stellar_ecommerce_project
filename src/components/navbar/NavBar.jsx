@@ -24,12 +24,14 @@ function NavBar() {
     router.push("/register");
   };
 
+
+
+
   const handleLogin = async () => {
     if (!address) {
       toast.error("Please connect wallet to continue");
       return;
     }
-    // try {
     const result = await contract.invoke({
       method: "login",
       args: [nativeToScVal(address, { type: "address" })],
@@ -48,6 +50,10 @@ function NavBar() {
       localStorage.setItem("userLoginName", decodedString);
       setLogInUser(decodedString);
       setShowButtons(false);
+
+      if(decodedString === "Admin" || decodedString === "admin" || decodedString === "ADMIN"){
+        router.push("/admin");
+      }
     }
   };
 
@@ -86,6 +92,13 @@ function NavBar() {
             </Nav.Link>
             <Nav.Link as={Link} href="/viewOrders">
               View Orders
+            </Nav.Link>
+
+            {/* This tab is meant to be removed from the navbar to prevent customers 
+            from fulfilling their orders without the presence of the delivery man 
+            But its added here to help people navigate the application*/}
+            <Nav.Link as={Link} href="/fulfillOrders">  
+              Fulfill Order
             </Nav.Link>
           </Nav>
           <Stack direction="horizontal" gap={3}>

@@ -15,11 +15,15 @@ const Cart = (props) => {
   const [txHash, setTxHash] = useState("");
   const [showTxHash, setShowTxHash] = useState(false);
   const [specificCartItem, setSpecificCartItem] = useState([]);
-
+  const [homeAddress, setHomeAddress] = useState("");
   const [amount, setAmount] = useState();
   const sorobanContext = useSorobanReact();
-
   const { address } = sorobanContext;
+  const [showTextAreaBox, setShowTextAreaBox] = useState(true);
+
+  const handleChange = (event) => {
+    setHomeAddress(event.target.value);
+  };
 
   useEffect(() => {
     // Load cart items from local storage on component mount
@@ -77,6 +81,10 @@ const Cart = (props) => {
 
   const handleOrder = async () => {
     try {
+      if (homeAddress == "") {
+        toast.error("Fill in your delivery address to continue");
+        return;
+      }
       let userLoginCheck = localStorage.getItem("userLoginName");
       if (userLoginCheck === "User not found" || userLoginCheck == null) {
         toast.error("Login User to continue");
@@ -104,6 +112,9 @@ const Cart = (props) => {
             nativeToScVal(address, { type: "address" }),
             nativeToScVal(totalAmount, { type: "i128" }),
             nativeToScVal(serializedItems, { type: "array" }), //remove if error arises
+            nativeToScVal(homeAddress, { type: "string" }),
+            nativeToScVal(userLoginCheck, { type: "string" }),
+
           ],
           signAndSend: true,
         });
@@ -114,6 +125,7 @@ const Cart = (props) => {
 
         localStorage.removeItem("cartItems");
         setCartItems([]);
+        setShowTextAreaBox(false);
       }
     } catch (error) {
       toast.error("Error during Placing Order");
@@ -176,9 +188,27 @@ const Cart = (props) => {
           ))}
         </tbody>
       </Table>
-      <div className="text-right font-bold ">
+      <Stack direction="vertical">
         <strong>Total: {totalAmount / 10_000_000} XLM</strong>
-      </div>
+        <br />
+        {showTextAreaBox ? (
+          <>
+            <label>
+              <strong>Delivery Address: </strong>
+            </label>
+            <textarea
+              className="border-2 border-black p-4"
+              value={homeAddress}
+              onChange={handleChange}
+              placeholder="Enter your home address or delivery address"
+              rows={2}
+              cols={20}
+            />
+          </>
+        ) : (
+          ""
+        )}
+      </Stack>
       <Stack direction="horizontal">
         <div className="mt-4 text-right">
           <Stack direction="horizontal" gap={2}>
